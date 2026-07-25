@@ -49,7 +49,7 @@ const dailyTasks = [
   {
     id: "situations",
     time: "15 мин",
-    title: "8 дорожных решений",
+    title: "20 дорожных решений",
     text: "Выбери безопасный вариант. Ошибки попадут в повторение.",
   },
   {
@@ -1079,6 +1079,8 @@ export default function FahrklarApp() {
   const [loaded, setLoaded] = useState(false);
   const [daysLeft, setDaysLeft] = useState(13);
 
+  // Browser-only progress must hydrate after SSR to avoid a markup mismatch.
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     try {
       const stored = window.localStorage.getItem("fahrklar-progress-v1");
@@ -1096,6 +1098,7 @@ export default function FahrklarApp() {
     const difference = examDate - Date.now();
     setDaysLeft(Math.ceil(difference / 86_400_000));
   }, []);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   useEffect(() => {
     if (!loaded) return;

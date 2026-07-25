@@ -45,7 +45,7 @@ test("server-renders Fahrklar product and social metadata", async () => {
 test("ships all generated scenarios and interactive learning modules", async () => {
   const scenarioRoot = new URL("../public/scenarios/", import.meta.url);
   const files = (await readdir(scenarioRoot)).sort();
-  assert.equal(files.length, 16);
+  assert.equal(files.length, 40);
   assert.ok(files.every((file) => file.endsWith(".webp")));
 
   for (const file of files) {
@@ -65,6 +65,7 @@ test("ships all generated scenarios and interactive learning modules", async () 
   assert.match(app, /TechTrainer/);
   assert.match(app, /ExamMode/);
   assert.match(data, /railway-crossing/);
+  assert.match(data, /tram-stop-passengers/);
   assert.match(data, /bremskraftverstaerker/);
   assert.doesNotMatch(packageJson, /react-loading-skeleton/);
 
