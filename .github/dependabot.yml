@@ -8,9 +8,6 @@ updates:
       day: monday
       time: "07:00"
       timezone: Europe/Berlin
-    open-pull-requests-limit: 5
-    groups:
-      production-dependencies:
-        dependency-type: production
-      development-dependencies:
-        dependency-type: development
+    # Routine version updates stay manual; security updates remain enabled
+    # through the repository security settings.
+    open-pull-requests-limit: 0
