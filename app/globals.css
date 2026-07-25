@@ -1896,7 +1896,7 @@ img {
 .site-footer {
   display: grid;
   min-height: 130px;
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: auto 1fr auto auto;
   align-items: center;
   gap: 30px;
   padding: 24px clamp(28px, 4vw, 72px);
@@ -1912,6 +1912,20 @@ img {
 .site-footer > span {
   letter-spacing: 0.08em;
   text-transform: uppercase;
+}
+
+.site-footer > a {
+  color: var(--acid);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.site-footer > a:hover {
+  text-decoration: underline;
+  text-underline-offset: 4px;
 }
 
 @media (max-width: 1180px) {

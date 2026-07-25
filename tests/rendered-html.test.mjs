@@ -34,11 +34,15 @@ test("server-renders Fahrklar product and social metadata", async () => {
   assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
 
   const html = await response.text();
-  assert.match(html, /<title>Fahrklar — подготовка к Fahrprüfung Klasse B<\/title>/i);
+  assert.match(
+    html,
+    /<title>Fahrklar — German Practical Driving Test Trainer<\/title>/i,
+  );
   assert.match(html, /FAHRKLAR/);
   assert.match(html, /Не угадывай/);
   assert.match(html, /PRAKTISCHE FAHRPRÜFUNG/);
   assert.match(html, /https:\/\/fahrklar\.test\/og\.png/);
+  assert.match(html, /name="robots" content="index, follow"/i);
   assert.doesNotMatch(html, /codex-preview|Your site is taking shape|SkeletonPreview/);
 });
 

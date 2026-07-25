@@ -36,9 +36,9 @@ export async function generateMetadata(): Promise<Metadata> {
 
   return {
     metadataBase,
-    title: "Fahrklar — подготовка к Fahrprüfung Klasse B",
+    title: "Fahrklar — German Practical Driving Test Trainer",
     description:
-      "Интерактивный тренажёр практической Fahrprüfung в Германии: дорожные ситуации, технические вопросы, команды Prüfer и пробный экзамен.",
+      "Interactive DE/RU trainer for the German Klasse B practical driving test: road situations, vehicle checks, examiner commands and mock exams.",
     applicationName: "Fahrklar",
     authors: [{ name: "Fahrklar" }],
     category: "education",
@@ -49,9 +49,11 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     openGraph: {
       type: "website",
-      locale: "de_DE",
-      title: "FAHRKLAR — Klasse B · 07.08.2026",
-      description: "Sehen. Entscheiden. Bestehen.",
+      locale: "en_GB",
+      alternateLocale: ["de_DE", "ru_RU"],
+      title: "Fahrklar — German Klasse B Driving Test Trainer",
+      description:
+        "German exam content with Russian explanations, 20 visual road situations and 36 vehicle-check questions.",
       siteName: "Fahrklar",
       images: [
         {
@@ -64,13 +66,14 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     twitter: {
       card: "summary_large_image",
-      title: "FAHRKLAR — Klasse B · 07.08.2026",
-      description: "Sehen. Entscheiden. Bestehen.",
+      title: "Fahrklar — German Klasse B Driving Test Trainer",
+      description:
+        "German exam content with Russian explanations, visual road situations and vehicle-check questions.",
       images: [socialImage],
     },
     robots: {
-      index: false,
-      follow: false,
+      index: true,
+      follow: true,
     },
   };
 }

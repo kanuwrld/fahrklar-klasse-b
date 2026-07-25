@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   examQuestions,
   examinerCommands,
@@ -709,11 +709,14 @@ function ExamMode({ onComplete }: { onComplete: (score: number) => void }) {
 
   const question: ExamQuestion | undefined = examQuestions[index];
 
-  const finish = (result: number) => {
-    if (finalScore !== null) return;
-    setFinalScore(result);
-    onComplete(result);
-  };
+  const finish = useCallback(
+    (result: number) => {
+      if (finalScore !== null) return;
+      setFinalScore(result);
+      onComplete(result);
+    },
+    [finalScore, onComplete],
+  );
 
   useEffect(() => {
     if (!started || finalScore !== null) return;
@@ -729,7 +732,7 @@ function ExamMode({ onComplete }: { onComplete: (score: number) => void }) {
     }, 1000);
     return () => window.clearInterval(timer);
     // score belongs here: timeout must save current result.
-  }, [started, finalScore, score]);
+  }, [started, finalScore, score, finish]);
 
   const start = () => {
     setStarted(true);
@@ -1235,6 +1238,13 @@ export default function FahrklarApp() {
             Учебный тренажёр Klasse B. Не официальный продукт TÜV, DEKRA или
             ADAC.
           </p>
+          <a
+            href="https://github.com/kanuwrld/fahrklar-klasse-b"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Source code · EN/DE documentation ↗
+          </a>
           <span>Fahr sicher. Nicht nur für die Prüfung.</span>
         </footer>
       </div>
