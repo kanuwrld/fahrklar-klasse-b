@@ -31,6 +31,8 @@ images are static assets. External links open official reference pages only.
 - GitHub secret scanning and push protection;
 - Dependabot alerts and automated security updates;
 - read-only GitHub Actions permissions;
+- immutable commit pins for third-party GitHub Actions;
+- public-repository and Vercel-upload boundary checks in CI;
 - production dependency audit in CI;
 - Content Security Policy and defensive HTTP headers;
 - no collection or transmission of learner progress.

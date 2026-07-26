@@ -7,6 +7,7 @@
 [Live demo](https://fahrklar-klasse-b.vercel.app) ·
 [Deutsch](README.de.md) ·
 [Русский](README.ru.md) ·
+[Project management](PROJECT_MANAGEMENT.md) ·
 [Architecture](docs/architecture.md) ·
 [Security](SECURITY.md)
 
