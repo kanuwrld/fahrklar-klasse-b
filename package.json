@@ -15,8 +15,9 @@
     "test": "npm run build && node --test tests/rendered-html.test.mjs",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
     "typecheck": "tsc --noEmit",
+    "security:public": "node scripts/validate-public-repo.mjs",
     "audit:prod": "npm audit --omit=dev --audit-level=high",
-    "check": "npm run lint && npm run typecheck && npm test && npm run build:vercel && npm run audit:prod"
+    "check": "npm run security:public && npm run lint && npm run typecheck && npm test && npm run build:vercel && npm run audit:prod"
   },
   "dependencies": {
     "next": "16.2.11",

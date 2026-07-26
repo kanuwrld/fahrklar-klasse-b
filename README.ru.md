@@ -6,6 +6,7 @@
 [Открыть сайт](https://fahrklar-klasse-b.vercel.app) ·
 [English](README.md) ·
 [Deutsch](README.de.md) ·
+[Управление проектом](PROJECT_MANAGEMENT.md) ·
 [Архитектура](docs/architecture.md) ·
 [Безопасность](SECURITY.md)
 
