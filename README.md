@@ -37,7 +37,8 @@ No account required. Progress stays on current device.
 - timed 12-question mock exam;
 - automatic error-review queue;
 - local progress tracking;
-- responsive desktop and mobile interface.
+- responsive desktop and mobile interface;
+- readable type scale with stronger secondary-text contrast.
 
 ## Engineering highlights
 

@@ -57,10 +57,11 @@ test("ships all generated scenarios and interactive learning modules", async () 
     assert.ok(fileStat.size < 100_000, `${file} should stay mobile-friendly`);
   }
 
-  const [app, data, packageJson] = await Promise.all([
+  const [app, data, packageJson, styles] = await Promise.all([
     readFile(new URL("../app/FahrklarApp.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/data.ts", import.meta.url), "utf8"),
     readFile(new URL("../package.json", import.meta.url), "utf8"),
+    readFile(new URL("../app/globals.css", import.meta.url), "utf8"),
   ]);
 
   assert.match(app, /localStorage/);
@@ -77,6 +78,10 @@ test("ships all generated scenarios and interactive learning modules", async () 
   assert.match(data, /tram-stop-passengers/);
   assert.match(data, /bremskraftverstaerker/);
   assert.doesNotMatch(packageJson, /react-loading-skeleton/);
+  assert.match(styles, /--type-micro:\s*11px/);
+  assert.match(styles, /--type-body:\s*14px/);
+  assert.match(styles, /--muted-2:\s*#828b83/);
+  assert.doesNotMatch(styles, /font-size:\s*(?:[0-9]|10)px\b/);
 
   await access(new URL("../public/og.png", import.meta.url));
   await assert.rejects(

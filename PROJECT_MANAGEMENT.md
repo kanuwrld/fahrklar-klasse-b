@@ -21,6 +21,7 @@ practice.
 - examiner commands and five `Grundfahraufgaben`;
 - timed mock exam, error review and local progress;
 - local first-run onboarding and learner focus profile;
+- readable responsive type scale and improved secondary-text contrast;
 - responsive public Vercel deployment;
 - English, German and Russian documentation;
 - automated build, test and dependency checks.
