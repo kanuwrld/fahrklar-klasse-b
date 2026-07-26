@@ -40,7 +40,7 @@ test("server-renders Fahrklar product and social metadata", async () => {
   );
   assert.match(html, /FAHRKLAR/);
   assert.match(html, /Не угадывай/);
-  assert.match(html, /PRAKTISCHE FAHRPRÜFUNG/);
+  assert.match(html, /DEIN FAHRPLAN/);
   assert.match(html, /https:\/\/fahrklar\.test\/og\.png/);
   assert.match(html, /name="robots" content="index, follow"/i);
   assert.doesNotMatch(html, /codex-preview|Your site is taking shape|SkeletonPreview/);
@@ -64,6 +64,11 @@ test("ships all generated scenarios and interactive learning modules", async () 
   ]);
 
   assert.match(app, /localStorage/);
+  assert.match(app, /LearnerOnboarding/);
+  assert.match(app, /fahrklar-profile-v1/);
+  assert.match(app, /aria-modal="true"/);
+  assert.match(app, /onboarding-exam-date/);
+  assert.match(app, /onboarding-focus-\$\{item\.id\}/);
   assert.match(app, /speechSynthesis/);
   assert.match(app, /ScenarioTrainer/);
   assert.match(app, /TechTrainer/);

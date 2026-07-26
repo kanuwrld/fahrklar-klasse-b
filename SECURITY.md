@@ -21,7 +21,9 @@ Include:
 ## Data and privacy model
 
 Fahrklar has no accounts, backend database, analytics SDK or advertising
-tracker. Training progress stays in the browser through `localStorage`.
+tracker. Optional display name, exam date, learning focus and training progress
+stay in the browser through `localStorage`. Users can edit onboarding values;
+clearing browser storage removes them.
 
 The repository requires no API keys or runtime secrets. Generated road-scene
 images are static assets. External links open official reference pages only.
@@ -35,4 +37,4 @@ images are static assets. External links open official reference pages only.
 - public-repository and Vercel-upload boundary checks in CI;
 - production dependency audit in CI;
 - Content Security Policy and defensive HTTP headers;
-- no collection or transmission of learner progress.
+- no collection or transmission of learner profile or progress.

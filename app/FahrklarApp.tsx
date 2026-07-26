@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   examQuestions,
   examinerCommands,
@@ -16,6 +16,16 @@ import {
 } from "./data";
 
 type View = "home" | "situations" | "technik" | "exam" | "errors";
+type LearnerStage = "first-lessons" | "practising" | "exam-soon";
+type FocusArea = "situations" | "technik" | "commands" | "manoeuvres";
+
+type LearnerProfile = {
+  name: string;
+  examDate: string;
+  stage: LearnerStage;
+  focusAreas: FocusArea[];
+  completedAt: string;
+};
 
 type Progress = {
   scenarioAttempts: number;
@@ -36,6 +46,56 @@ const defaultProgress: Progress = {
   dailyChecks: [],
   examResults: [],
 };
+
+const PROFILE_STORAGE_KEY = "fahrklar-profile-v1";
+const DEFAULT_EXAM_DATE = "2026-08-07";
+const learnerStages: {
+  id: LearnerStage;
+  label: string;
+  detail: string;
+}[] = [
+  {
+    id: "first-lessons",
+    label: "Первые занятия",
+    detail: "Собираю базу и немецкие команды.",
+  },
+  {
+    id: "practising",
+    label: "Уже вожу",
+    detail: "Нужна системная практика сложных решений.",
+  },
+  {
+    id: "exam-soon",
+    label: "Экзамен скоро",
+    detail: "Нужен строгий план и повторение ошибок.",
+  },
+];
+const focusOptions: {
+  id: FocusArea;
+  label: string;
+  detail: string;
+}[] = [
+  {
+    id: "situations",
+    label: "Дорожные ситуации",
+    detail: "Vorfahrt · Blickführung · скорость",
+  },
+  {
+    id: "technik",
+    label: "Technik",
+    detail: "Шины · свет · жидкости · тормоза",
+  },
+  {
+    id: "commands",
+    label: "Немецкие команды",
+    detail: "Prüfer понимать сразу, без перевода",
+  },
+  {
+    id: "manoeuvres",
+    label: "Манёвры",
+    detail: "Парковка · разворот · Gefahrbremsung",
+  },
+];
 
 const navItems: { id: View; index: string; label: string }[] = [
   { id: "home", index: "01", label: "Сегодня" },
@@ -66,7 +126,311 @@ const dailyTasks = [
   },
 ];
 
-function unique(items: string[]) {
+function isLearnerStage(value: unknown): value is LearnerStage {
+  return learnerStages.some((stage) => stage.id === value);
+}
+
+function isFocusArea(value: unknown): value is FocusArea {
+  return focusOptions.some((focus) => focus.id === value);
+}
+
+function isValidExamDate(value: unknown): value is string {
+  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    return false;
+  }
+  const [year, month, day] = value.split("-").map(Number);
+  const date = new Date(`${value}T12:00:00`);
+  return (
+    Number.isFinite(date.getTime()) &&
+    date.getFullYear() === year &&
+    date.getMonth() + 1 === month &&
+    date.getDate() === day
+  );
+}
+
+function parseLearnerProfile(value: unknown): LearnerProfile | null {
+  if (!value || typeof value !== "object") return null;
+  const candidate = value as Partial<LearnerProfile>;
+  if (
+    typeof candidate.name !== "string" ||
+    candidate.name.length > 40 ||
+    !isValidExamDate(candidate.examDate) ||
+    !isLearnerStage(candidate.stage) ||
+    !Array.isArray(candidate.focusAreas) ||
+    !candidate.focusAreas.length ||
+    !candidate.focusAreas.every(isFocusArea) ||
+    typeof candidate.completedAt !== "string"
+  ) {
+    return null;
+  }
+  return {
+    name: candidate.name.trim(),
+    examDate: candidate.examDate,
+    stage: candidate.stage,
+    focusAreas: unique(candidate.focusAreas),
+    completedAt: candidate.completedAt,
+  };
+}
+
+function examDateParts(value: string) {
+  const [year, month, day] = value.split("-");
+  const date = new Date(`${value}T12:00:00`);
+  return {
+    day,
+    month,
+    label: new Intl.DateTimeFormat("ru-RU", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    }).format(date),
+    machine: `${year}-${month}-${day}`,
+  };
+}
+
+function calculateDaysLeft(value: string) {
+  const examDate = new Date(`${value}T00:00:00`).getTime();
+  return Math.ceil((examDate - Date.now()) / 86_400_000);
+}
+
+function LearnerOnboarding({
+  initialProfile,
+  onComplete,
+  onClose,
+}: {
+  initialProfile: LearnerProfile | null;
+  onComplete: (profile: LearnerProfile) => void;
+  onClose: (() => void) | null;
+}) {
+  const [step, setStep] = useState(0);
+  const [name, setName] = useState(initialProfile?.name ?? "");
+  const [examDate, setExamDate] = useState(
+    initialProfile?.examDate ?? DEFAULT_EXAM_DATE,
+  );
+  const [stage, setStage] = useState<LearnerStage>(
+    initialProfile?.stage ?? "exam-soon",
+  );
+  const [focusAreas, setFocusAreas] = useState<FocusArea[]>(
+    initialProfile?.focusAreas ?? ["situations", "technik"],
+  );
+  const headingRef = useRef<HTMLHeadingElement>(null);
+
+  useEffect(() => {
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, []);
+
+  useEffect(() => {
+    headingRef.current?.focus();
+  }, [step]);
+
+  const finish = (overrides?: Partial<LearnerProfile>) => {
+    onComplete({
+      name: name.trim().slice(0, 40),
+      examDate,
+      stage,
+      focusAreas,
+      completedAt: initialProfile?.completedAt ?? new Date().toISOString(),
+      ...overrides,
+    });
+  };
+
+  const toggleFocus = (focus: FocusArea) => {
+    setFocusAreas((current) =>
+      current.includes(focus)
+        ? current.filter((item) => item !== focus)
+        : [...current, focus],
+    );
+  };
+
+  const canContinue =
+    step === 0
+      ? true
+      : step === 1
+        ? isValidExamDate(examDate)
+        : focusAreas.length > 0;
+
+  return (
+    <div className="onboarding-overlay" data-testid="learner-onboarding">
+      <section
+        className="onboarding-card"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="onboarding-title"
+      >
+        <header className="onboarding-topbar">
+          <Brand />
+          <div className="onboarding-top-actions">
+            <span>{initialProfile ? "ПРОФИЛЬ" : `ШАГ ${step + 1} / 3`}</span>
+            {onClose ? (
+              <button
+                type="button"
+                onClick={onClose}
+                aria-label="Закрыть настройки профиля"
+              >
+                ×
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() =>
+                  finish({
+                    name: "",
+                    examDate: DEFAULT_EXAM_DATE,
+                    stage: "exam-soon",
+                    focusAreas: ["situations", "technik"],
+                  })
+                }
+              >
+                Пропустить
+              </button>
+            )}
+          </div>
+        </header>
+
+        <div className="onboarding-progress" aria-label={`Шаг ${step + 1} из 3`}>
+          {[0, 1, 2].map((item) => (
+            <i className={item <= step ? "active" : ""} key={item} />
+          ))}
+        </div>
+
+        <div className="onboarding-body">
+          {step === 0 ? (
+            <div className="onboarding-step">
+              <p className="section-kicker">WILLKOMMEN BEI FAHRKLAR</p>
+              <h1 id="onboarding-title" ref={headingRef} tabIndex={-1}>
+                Подстроим тренировку под тебя.
+              </h1>
+              <p>
+                Три коротких шага. Без регистрации, почты и облака. Профиль и
+                прогресс останутся только в этом браузере.
+              </p>
+              <label className="onboarding-field">
+                <span>Как к тебе обращаться? <small>необязательно</small></span>
+                <input
+                  type="text"
+                  value={name}
+                  maxLength={40}
+                  autoComplete="nickname"
+                  placeholder="Имя или ник"
+                  onChange={(event) => setName(event.target.value)}
+                  data-testid="onboarding-name"
+                />
+              </label>
+              <div className="onboarding-privacy">
+                <span aria-hidden="true">⌁</span>
+                <p>
+                  Ничего не отправляется на сервер. На другом устройстве будет
+                  отдельный профиль.
+                </p>
+              </div>
+            </div>
+          ) : null}
+
+          {step === 1 ? (
+            <div className="onboarding-step">
+              <p className="section-kicker">DEIN TERMIN</p>
+              <h1 id="onboarding-title" ref={headingRef} tabIndex={-1}>
+                Где ты сейчас?
+              </h1>
+              <p>
+                Дата управляет обратным отсчётом. Этап помогает выбрать
+                правильный темп подготовки.
+              </p>
+              <label className="onboarding-field compact">
+                <span>Дата практического экзамена</span>
+                <input
+                  type="date"
+                  value={examDate}
+                  required
+                  onChange={(event) => setExamDate(event.target.value)}
+                  data-testid="onboarding-exam-date"
+                />
+              </label>
+              <div className="onboarding-options" role="group" aria-label="Этап подготовки">
+                {learnerStages.map((item) => (
+                  <button
+                    className={stage === item.id ? "selected" : ""}
+                    type="button"
+                    key={item.id}
+                    aria-pressed={stage === item.id}
+                    onClick={() => setStage(item.id)}
+                    data-testid={`onboarding-stage-${item.id}`}
+                  >
+                    <span>{stage === item.id ? "✓" : "○"}</span>
+                    <strong>{item.label}</strong>
+                    <small>{item.detail}</small>
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : null}
+
+          {step === 2 ? (
+            <div className="onboarding-step">
+              <p className="section-kicker">DEIN FOKUS</p>
+              <h1 id="onboarding-title" ref={headingRef} tabIndex={-1}>
+                Что требует больше внимания?
+              </h1>
+              <p>
+                Выбери минимум один блок. Фокус появится в персональном плане и
+                его можно изменить позже.
+              </p>
+              <div className="onboarding-focus-grid" role="group" aria-label="Слабые темы">
+                {focusOptions.map((item, index) => {
+                  const selected = focusAreas.includes(item.id);
+                  return (
+                    <button
+                      className={selected ? "selected" : ""}
+                      type="button"
+                      key={item.id}
+                      aria-pressed={selected}
+                      onClick={() => toggleFocus(item.id)}
+                      data-testid={`onboarding-focus-${item.id}`}
+                    >
+                      <span>{String(index + 1).padStart(2, "0")}</span>
+                      <strong>{item.label}</strong>
+                      <small>{item.detail}</small>
+                      <i aria-hidden="true">{selected ? "✓" : "+"}</i>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ) : null}
+        </div>
+
+        <footer className="onboarding-actions">
+          <button
+            className="secondary-button"
+            type="button"
+            disabled={step === 0}
+            onClick={() => setStep((current) => Math.max(0, current - 1))}
+          >
+            Назад
+          </button>
+          <button
+            className="primary-button"
+            type="button"
+            disabled={!canContinue}
+            onClick={() => {
+              if (step < 2) setStep((current) => current + 1);
+              else finish();
+            }}
+            data-testid="onboarding-next"
+          >
+            {step === 2 ? "Создать мой план" : "Дальше"}
+            <span aria-hidden="true">→</span>
+          </button>
+        </footer>
+      </section>
+    </div>
+  );
+}
+
+function unique<T>(items: T[]) {
   return Array.from(new Set(items));
 }
 
@@ -129,26 +493,41 @@ function ProgressRing({ value }: { value: number }) {
 
 function HomeView({
   daysLeft,
+  profile,
+  date,
   progress,
   progressPercent,
   onNavigate,
   onToggleTask,
+  onEditProfile,
 }: {
   daysLeft: number;
+  profile: LearnerProfile | null;
+  date: ReturnType<typeof examDateParts>;
   progress: Progress;
   progressPercent: number;
   onNavigate: (view: View) => void;
   onToggleTask: (id: string) => void;
+  onEditProfile: () => void;
 }) {
   const todayDone = dailyTasks.filter((task) =>
     progress.dailyChecks.includes(task.id),
   ).length;
+  const stageLabel = learnerStages.find(
+    (item) => item.id === profile?.stage,
+  )?.label;
+  const focusLabels = focusOptions
+    .filter((item) => profile?.focusAreas.includes(item.id))
+    .map((item) => item.label);
 
   return (
     <div className="view home-view">
       <section className="hero-section">
         <div className="hero-copy">
-          <p className="eyebrow">PRAKTISCHE FAHRPRÜFUNG · 07.08.2026</p>
+          <p className="eyebrow">
+            {profile?.name ? `DEIN PLAN · ${profile.name}` : "DEIN FAHRPLAN"} ·{" "}
+            {date.machine}
+          </p>
           <h1>
             Не угадывай.
             <br />
@@ -159,6 +538,14 @@ function HomeView({
             подготовка, манёвры и ситуации, где один неверный взгляд решает
             экзамен.
           </p>
+          {profile ? (
+            <div className="learner-summary" data-testid="learner-summary">
+              <span>{stageLabel}</span>
+              <p>
+                <strong>Фокус:</strong> {focusLabels.join(" · ")}
+              </p>
+            </div>
+          ) : null}
           <div className="hero-actions">
             <button
               className="primary-button"
@@ -181,12 +568,14 @@ function HomeView({
         <div className="exam-date-card">
           <div className="date-topline">
             <span>DEIN TERMIN</span>
-            <span>BERLIN TIME</span>
+            <button type="button" onClick={onEditProfile}>
+              Настроить
+            </button>
           </div>
           <div className="date-display">
-            <strong>07</strong>
+            <strong>{date.day}</strong>
             <span>/</span>
-            <strong>08</strong>
+            <strong>{date.month}</strong>
           </div>
           <div className="countdown-line">
             <span className="pulse-dot" />
@@ -195,6 +584,7 @@ function HomeView({
               : daysLeft === 0
                 ? "Экзамен сегодня"
                 : "Дата экзамена прошла"}
+            <time dateTime={date.machine}>{date.label}</time>
           </div>
           <div className="date-progress">
             <ProgressRing value={progressPercent} />
@@ -1079,8 +1469,9 @@ function ErrorsView({
 export default function FahrklarApp() {
   const [view, setView] = useState<View>("home");
   const [progress, setProgress] = useState<Progress>(defaultProgress);
+  const [profile, setProfile] = useState<LearnerProfile | null>(null);
+  const [onboardingOpen, setOnboardingOpen] = useState(false);
   const [loaded, setLoaded] = useState(false);
-  const [daysLeft, setDaysLeft] = useState(13);
 
   // Browser-only progress must hydrate after SSR to avoid a markup mismatch.
   /* eslint-disable react-hooks/set-state-in-effect */
@@ -1091,15 +1482,26 @@ export default function FahrklarApp() {
         const parsed = JSON.parse(stored) as Partial<Progress>;
         setProgress({ ...defaultProgress, ...parsed });
       }
+
+      const storedProfile = window.localStorage.getItem(PROFILE_STORAGE_KEY);
+      if (storedProfile) {
+        const parsedProfile = parseLearnerProfile(JSON.parse(storedProfile));
+        if (parsedProfile) {
+          setProfile(parsedProfile);
+        } else {
+          window.localStorage.removeItem(PROFILE_STORAGE_KEY);
+          setOnboardingOpen(true);
+        }
+      } else {
+        setOnboardingOpen(true);
+      }
     } catch {
       setProgress(defaultProgress);
+      setProfile(null);
+      setOnboardingOpen(true);
     } finally {
       setLoaded(true);
     }
-
-    const examDate = new Date("2026-08-07T00:00:00+02:00").getTime();
-    const difference = examDate - Date.now();
-    setDaysLeft(Math.ceil(difference / 86_400_000));
   }, []);
   /* eslint-enable react-hooks/set-state-in-effect */
 
@@ -1110,6 +1512,19 @@ export default function FahrklarApp() {
       JSON.stringify(progress),
     );
   }, [loaded, progress]);
+
+  useEffect(() => {
+    if (!loaded || !profile) return;
+    window.localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(profile));
+  }, [loaded, profile]);
+
+  const date = useMemo(
+    () => examDateParts(profile?.examDate ?? DEFAULT_EXAM_DATE),
+    [profile?.examDate],
+  );
+  const daysLeft = loaded
+    ? calculateDaysLeft(profile?.examDate ?? DEFAULT_EXAM_DATE)
+    : 13;
 
   const progressPercent = Math.round(
     ((progress.completedScenarios.length + progress.masteredTech.length) /
@@ -1166,6 +1581,13 @@ export default function FahrklarApp() {
     window.localStorage.removeItem("fahrklar-progress-v1");
   };
 
+  const saveProfile = (nextProfile: LearnerProfile) => {
+    setProfile(nextProfile);
+    setOnboardingOpen(false);
+    setView("home");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   return (
     <main className="app-shell">
       <aside className="sidebar">
@@ -1189,7 +1611,7 @@ export default function FahrklarApp() {
           <span className="pulse-dot" />
           <div>
             <strong>Экзамен</strong>
-            <small>7 августа 2026</small>
+            <small>{date.label}</small>
           </div>
         </div>
       </aside>
@@ -1205,10 +1627,13 @@ export default function FahrklarApp() {
         {view === "home" ? (
           <HomeView
             daysLeft={daysLeft}
+            profile={profile}
+            date={date}
             progress={progress}
             progressPercent={progressPercent}
             onNavigate={navigate}
             onToggleTask={toggleDailyTask}
+            onEditProfile={() => setOnboardingOpen(true)}
           />
         ) : null}
         {view === "situations" ? (
@@ -1262,6 +1687,14 @@ export default function FahrklarApp() {
           </button>
         ))}
       </nav>
+
+      {loaded && onboardingOpen ? (
+        <LearnerOnboarding
+          initialProfile={profile}
+          onComplete={saveProfile}
+          onClose={profile ? () => setOnboardingOpen(false) : null}
+        />
+      ) : null}
     </main>
   );
 }
