@@ -20,6 +20,7 @@ practice.
 - 36 vehicle-check and technical questions;
 - examiner commands and five `Grundfahraufgaben`;
 - timed mock exam, error review and local progress;
+- local first-run onboarding and learner focus profile;
 - responsive public Vercel deployment;
 - English, German and Russian documentation;
 - automated build, test and dependency checks.

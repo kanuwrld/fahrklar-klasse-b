@@ -9,7 +9,10 @@ server-side persistence or external APIs.
 static training data
         |
         v
-React learning modules ---> browser localStorage
+first-run onboarding ---> browser localStorage
+        |
+        v
+React learning modules
         |
         +-- road-situation trainer
         +-- vehicle-check flashcards
@@ -39,8 +42,12 @@ Two build targets remain available:
 
 ## State
 
-Only learner progress is persisted. Storage key:
-`fahrklar-progress-v1`.
+Only local learner state is persisted:
+
+- `fahrklar-profile-v1` — optional display name, exam date, learning stage and
+  focus topics;
+- `fahrklar-progress-v1` — completed situations, technical cards, errors and
+  mock-exam results.
 
 No raw audio is recorded. German pronunciation uses browser
 `speechSynthesis`; availability depends on device.

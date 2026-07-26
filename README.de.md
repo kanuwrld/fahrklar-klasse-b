@@ -30,6 +30,7 @@ Gerät.
 
 ## Funktionsumfang
 
+- lokales Onboarding für Prüfungstermin, Lernstand und Schwerpunkte;
 - 20 visuelle Verkehrssituationen mit sicherer und gefährlicher Entscheidung;
 - 40 komprimierte WebP-Bilder für mobile Geräte;
 - 36 technische Fragen und Fahrzeugkontrollen;
@@ -74,10 +75,10 @@ Weitere technische Entscheidungen:
 
 ## Datenschutz und Sicherheit
 
-Der Lernfortschritt wird ausschließlich in `localStorage` gespeichert und
-nicht an einen Server gesendet. Für das Repository sind keine API-Schlüssel
-oder Laufzeit-Secrets erforderlich. Details stehen in
-[SECURITY.md](SECURITY.md).
+Optionaler Anzeigename, Prüfungstermin, Schwerpunkte und Lernfortschritt werden
+ausschließlich in `localStorage` gespeichert und nicht an einen Server
+gesendet. Für das Repository sind keine API-Schlüssel oder Laufzeit-Secrets
+erforderlich. Details stehen in [SECURITY.md](SECURITY.md).
 
 ## Offizielle Quellen
 

@@ -28,6 +28,7 @@ No account required. Progress stays on current device.
 
 ## Product scope
 
+- first-run onboarding for exam date, preparation stage and weak topics;
 - 20 visual road situations with safe/unsafe decisions;
 - 40 compressed, mobile-friendly WebP assets;
 - 36 vehicle-check and technical questions;
@@ -89,9 +90,10 @@ Detailed decisions: [docs/architecture.md](docs/architecture.md).
 
 ## Privacy and security
 
-Fahrklar sends no learner progress to a server. It uses `localStorage` only.
-Repository requires no runtime secrets. See [SECURITY.md](SECURITY.md) for
-reporting and controls.
+Fahrklar sends no learner profile or progress to a server. Optional display
+name, exam date, focus topics and results use `localStorage` only. Repository
+requires no runtime secrets. See [SECURITY.md](SECURITY.md) for reporting and
+controls.
 
 ## Official references
 
