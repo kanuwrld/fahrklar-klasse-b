@@ -421,7 +421,7 @@ function LearnerOnboarding({
             }}
             data-testid="onboarding-next"
           >
-            {step === 2 ? "Создать мой план" : "Дальше"}
+            {step === 2 ? "Создать план" : "Дальше"}
             <span aria-hidden="true">→</span>
           </button>
         </footer>

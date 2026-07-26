@@ -39,7 +39,8 @@ Gerät.
 - zeitlich begrenzte Prüfungssimulation mit 12 Aufgaben;
 - gezielte Wiederholung falsch beantworteter Situationen;
 - lokaler Lernfortschritt;
-- responsive Oberfläche für Smartphone und Desktop.
+- responsive Oberfläche für Smartphone und Desktop;
+- gut lesbare Schriftgrößen und kontrastreichere Sekundärtexte.
 
 ## Technische Qualität
 
